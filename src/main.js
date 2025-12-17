@@ -21,6 +21,8 @@ const max_value = 8;
 
 // const w_n = 10;
 // const h_n = Math.floor((container.clientHeight - r) / r);
+
+
 const field = two.makeGroup()
 
 for (let i = 0; ; i++) {
@@ -29,7 +31,7 @@ for (let i = 0; ; i++) {
         break;
     }
     for (let j = 0; ; j++) {
-        if (Math.random() > 0.3) {
+        // if (Math.random() > 0.3) {
 
             const x = padding + R + j * 3 * R + 2 * padding * j + (i % 2) * padding + R * 1.5 * (i % 2);
             if (x + R + padding >= container.clientWidth) {
@@ -37,7 +39,7 @@ for (let i = 0; ; i++) {
             }
 
             const hexagon = two.makePolygon(0, 0, R, sides);
-            hexagon.fill = 'rgba(171, 171, 171, 0.04)';
+            hexagon.fill = 'rgba(171, 171, 171, 0.06)';
             hexagon.linewidth = 0;
 
             const inner_hexagon = two.makePolygon(0, 0, r * 0.9, sides);
@@ -50,7 +52,7 @@ for (let i = 0; ; i++) {
             inner_hexagon._renderer.elem.classList.add("untouchable");
             
             var value = 0;
-            var value = Math.random() > 0.5 ? Math.ceil(max_value * Math.random()) : 0;
+            // var value = Math.random() > 0.5 ? Math.ceil(max_value * Math.random()) : 0;
             const ratio = Math.min(value / max_value, 1);
             const light = max_l - (ratio * (max_l - min_l));
             
@@ -71,8 +73,8 @@ for (let i = 0; ; i++) {
             group.translation.set(x, y);
             field.add(group)
             two.update();
-        } else {
-        }
+        // } else {
+        // }
     }
 }
 
@@ -81,7 +83,7 @@ setupInteractions(two);
 function setupInteractions(instance) {
 
     var result = new Set()
-
+    var ctrl_pressed = false;
     const svg = instance.renderer.domElement;
 
     const getShape = (e) => {
@@ -91,26 +93,43 @@ function setupInteractions(instance) {
         return null;
     };
 
+
+
+    function mouse_pressed(shape) { 
+        const hasStroke = shape.linewidth > 0 && shape.stroke;
+        if (hasStroke) {
+            shape.noStroke();
+            shape.linewidth = 0;
+        } else {
+            shape.stroke = '#f5f6fa';
+            shape.linewidth = 4;
+        }
+        two.update();
+    }
+
     svg.addEventListener('click', (e) => {
         const shape = getShape(e);
         if (shape) {
-            if (shape.id) {
-                if (result.has(shape.id)) {
-                    result.delete(shape.id);
-                } else {
-                    result.add(shape.id);
-                }
-            } 
-            if (shape.stroke == "") {
-                shape.noStroke();
-            } else {
-                shape.stroke = '#f5f6fa';
-            }
-            if (!shape.linewidth) {
-                shape.linewidth = 4;
-            } else {
-                shape.linewidth = 0;
-            }
+            mouse_pressed(shape);
+        }
+    });
+
+    function change_fill(shape) {
+        var shapes = ['rgba(171, 171, 171, 0.5)', 'rgba(171, 171, 171, 0.06)'];
+        shape.fill = shapes[1 - shapes.indexOf(shape.fill)]
+    }
+
+    svg.addEventListener('mouseover', (e) => {
+        const shape = getShape(e);
+        if (shape) {
+            change_fill(shape);
+        }
+    });
+    
+    svg.addEventListener('mouseout', (e) => {
+        const shape = getShape(e);
+        if (shape) {
+            change_fill(shape);
         }
     });
 }
