@@ -1,0 +1,28 @@
+* {
+    margin: 0px;
+    padding: 0px;
+}
+
+body {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    background-color: #353b48;
+}
+
+#game-canvas {
+    position: relative;
+    width: 60%;
+    height: 70%;
+    top: 15%;
+    left: 20%;
+}
+
+* {
+    pointer-events: all;
+}
+
+text {
+    pointer-events: none;
+    user-select: none;
+}
