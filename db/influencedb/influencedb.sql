@@ -1,11 +1,11 @@
 CREATE SCHEMA IF NOT EXISTS influence;
 
-CREATE TABLE influence.id_name (
+CREATE TABLE influence.users(
     id: BIGINT,
-    name: TEXT UNIQUE
+    name: TEXT,
 );
 
-CREATE INDEX id_name_name_index ON influence.id_name (name);
+CREATE INDEX users_id_index ON influence.users (id);
 
 CREATE TABLE influence.strategies(
     uid BIGINT,
@@ -33,4 +33,3 @@ CREATE TABLE influence.maps(
 )
 
 CREATE INDEX influence.maps_id_index ON influence.maps (id);
-

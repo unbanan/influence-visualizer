@@ -5,27 +5,20 @@ import (
 	"net/http"
 	"os"
 
-	"contest-influence/internal/handlers"
+	"contest-influence/server/internal/config"
+	"contest-influence/server/internal/context"
+	"contest-influence/server/internal/handlers"
 
 	"gopkg.in/yaml.v3"
 )
 
-type Config struct {
-	Server struct {
-		Port uint16 `yaml:"port"`
-	}
-
-	InfluenceDB struct {
-		DSN string `yaml:"influencedb.dsn"`
-	}
-}
-
-type server struct {
-	Config     Config
+type Service struct {
+	Config     config.ServiceConfig
 	HttpServer http.Server
+	Context    *context.Context
 }
 
-func New(config_path string) (s server) {
+func New(config_path string) (s Service) {
 	content, err := os.ReadFile(config_path)
 
 	fmt.Println("Initialising service")
@@ -35,15 +28,21 @@ func New(config_path string) (s server) {
 		panic(err)
 	}
 
-	err = yaml.Unmarshal(content, &s.Config)
+	config := config.ServiceConfig{}
+	err = yaml.Unmarshal(content, &config)
 
 	if err != nil {
 		fmt.Printf("Cannot parse config file: %s", err.Error())
 		panic(err)
 	}
 
+	s.Config = config
+	s.Context = context.NewContext(config)
+
 	mux := http.NewServeMux()
-	mux.Handle("/ping", &handlers.PingHandler{})
+	mux.Handle("/api/ping", handlers.NewPingHandler())
+	mux.Handle("/api/v1/register", handlers.NewRegisterHandler(s.Context))
+
 	s.HttpServer = http.Server{
 		Addr:    fmt.Sprintf(":%d", s.Config.Server.Port),
 		Handler: mux,
@@ -52,7 +51,7 @@ func New(config_path string) (s server) {
 	return
 }
 
-func (s *server) Run() {
+func (s *Service) Run() {
 	fmt.Printf("Server addr: %s\n", s.HttpServer.Addr)
 	fmt.Println("Running server")
 	go func() {

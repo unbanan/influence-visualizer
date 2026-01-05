@@ -4,9 +4,16 @@ import (
 	"net/http"
 )
 
-type PingHandler struct {
+type pingHandler struct {
 }
 
-func (h *PingHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (h *pingHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("pong\n"))
+}
+
+func NewPingHandler() *BaseHandler {
+	return &BaseHandler{
+		Handler: &pingHandler{},
+		Method:  http.MethodGet,
+	}
 }

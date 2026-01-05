@@ -1,7 +1,7 @@
 package main
 
 import (
-	"contest-influence/internal/service"
+	"contest-influence/server/internal/service"
 )
 
 func main() {
