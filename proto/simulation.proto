@@ -1,0 +1,59 @@
+syntax = "proto3";
+
+// position at map
+message Position {
+    uint32 row = 1;
+    uint32 col = 2;
+}
+
+// single cell of a map
+message Cell {
+    Position pos = 1;
+    optional uint32 value = 2;
+}
+
+// array of cells
+message Cells {
+    repeated Cell cells = 1;
+}
+
+// map, consisting of cells
+message Map {
+    string name = 1;
+    int32 nrows = 2;
+    int32 ncols = 3;
+
+    repeated bool field_mask = 4; // matrix of size nrows * ncols. true - usable cell, false - unusable
+    repeated Position big_cells = 5; // sparse: only placement
+
+    repeated Position start_positions = 6;
+}
+
+//state of simulation
+message SimulationSate {
+    Map map = 3;
+    map<int64, Cells> influence = 4;
+}
+
+// attack simulation phase
+message AttackSimulationPhase {
+    Cells moves = 1; // position of attacking cell and values is a number of an attacked neighbour
+}
+
+// defense simulation phase
+message DefenseSimulationPhase {
+    bool autodefense = 1;
+    Cells moves = 2; // position of defending cell and values is a points number, skipped if autodefense is true
+}
+
+// round of simulation
+message Round {
+    AttackSimulationPhase attack = 1;
+    DefenseSimulationPhase defense = 2;
+}
+
+message Simulation {
+    Map map = 1;
+    repeated int64 player_ids = 2;
+    repeated Round rounds = 3;
+}
