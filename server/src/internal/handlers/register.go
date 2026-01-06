@@ -43,5 +43,5 @@ type RegisterHandlerImpl struct {
 func (h *RegisterHandlerImpl) Register(id int64, name string) {
 	repo := h.Context.InfluenceDBRepo
 
-	go repo.Register(id, name)
+	repo.Register(id, name)
 }
