@@ -1,0 +1,5 @@
+aiopg
+aiohttp
+aiogram
+python-dotenv
+psycopg2-binary

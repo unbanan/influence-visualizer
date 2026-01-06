@@ -2,22 +2,6 @@ import Two from 'two.js';
 
 // import {Field, Cell, Player, TickView, Visualization} from './utils';
 
-
-const container = document.getElementById('game-canvas');
-
-const params = {
-    autostart: true,
-    height: container.clientHeight,
-    width: container.clientWidth,
-    type: Two.Types.svg,
-};
-
-const two = new Two(params).appendTo(container);
-
-const w_n = 10;
-const h_n = 20;
-const padding = 5;
-
 function calc_radius() {
     var le = 0, ri = Math.max(container.clientHeight, container.clientWidth);
     while (le + 1 < ri) {
@@ -34,75 +18,108 @@ function calc_radius() {
     return le;
 }
 
+const container = document.getElementById('game-canvas');
+const params = {
+    autostart: true,
+    height: container.clientHeight,
+    width: container.clientWidth,
+    type: Two.Types.svg,
+};
+const two = new Two(params).appendTo(container);
+
+const w_n = 10;
+const h_n = 20;
+const padding = 8;  
 const R = calc_radius();
 const r = Math.sqrt(R ** 2 - (R / 2) ** 2);
 const sides = 6;
 const min_l = 20, max_l = 50;
 const max_value = 8;
+const text_size = r * 0.8;
 
-
-function get_color(hue, light) {
-    return `hsl(${hue}, 30%, ${light}%)`
+function get_hsla_color(hue, percent, light, opacity = 1) {
+    return `hsla(${hue}, ${percent}%, ${light}%, ${opacity})`
 }
 
-const cells = [[9, 4, 100, 3], [8, 5, 100, 1], [9, 5, 100, 1], [8, 6, 100, 3]]
+// const cells = [[9, 4, 100, 7, "big"], [8, 5, 100, 12, "big"]]
+
+const cells = [
+    [3, 3, 100, 1, "small"],
+    [3, 5, 100, 1, "small"],
+    [5, 3, 100, 1, "small"],
+    [5, 5, 100, 1, "small"],
+    [7, 2, 100, 1, "small"],
+    [8, 3, 100, 1, "small"],
+    [9, 3, 100, 1, "small"],
+    [10, 4, 100, 1, "small"],
+    [9, 4, 100, 1, "small"],
+    [10, 5, 100, 1, "small"],
+    [9, 5, 100, 1, "small"],
+    [8, 6, 100, 1, "small"],
+    [7, 6, 100, 1, "small"],
+]
 
 const field = two.makeGroup()
 
 for (let i = 0; i < h_n; i++) {
     const y = padding + r + i * r + i * padding / 2;
     for (let j = 0; j < w_n; j++) {
-        // if (Math.random() > 0.3) {
+        const x = padding + R + j * 3 * R + 2 * padding * j + (i % 2) * padding + R * 1.5 * (i % 2);
 
-            const x = padding + R + j * 3 * R + 2 * padding * j + (i % 2) * padding + R * 1.5 * (i % 2);
+        const hexagon = two.makePolygon(0, 0, R, sides);
+        hexagon.fill = get_hsla_color(0, 0, 67, 0.06);
+        hexagon.linewidth = 0;
 
-            const hexagon = two.makePolygon(0, 0, R, sides);
-            hexagon.fill = 'rgba(171, 171, 171, 0.06)';
-            hexagon.linewidth = 0;
-
-            const inner_hexagon = two.makePolygon(0, 0, r * 0.9, sides);
-            inner_hexagon.fill = 'rgba(54, 48, 48, 1)';
-            hexagon.id = `hexagon_id=${i}_${j}`;
-            inner_hexagon.rotation = Math.PI / 6;
-            inner_hexagon.id = `inner_hexagon_id=${i}_${j}`
-            inner_hexagon.linewidth = 1;
-            two.update();
-            inner_hexagon._renderer.elem.classList.add("untouchable");
-            
-            // var value = 0;
-            // var value = Math.random() > 0.5 ? Math.ceil(max_value * Math.random()) : 0;
-            
-
-            
-            // const ratio = Math.min(value / max_value, 1);
-            // const light = max_l - (ratio * (max_l - min_l));
-            const group = two.makeGroup();
-            const hg = two.makeGroup(hexagon, inner_hexagon);
-            group.add(hg);
-            for (const cell of cells) {
-                const value = cell[3];
-                if (cell[0] === i && cell[1] === j) {
-                    if (value !== 0) {
-                        const ratio = Math.min(value / max_value, 1);
-                        const light = max_l - (ratio * (max_l - min_l));
-                        inner_hexagon.fill = get_color(cell[2], light);
-                        
-                        const txt = two.makeText(`${value}`, 0, 0);
-                        txt.fill = value !== 0 ? 'white' : 'transparent';
-                        txt.size = 12;
-                        txt.weight = 700;
-                        txt.family = 'sans-serif';
-                        group.add(txt);
-                        break;
-                    }
+        const inner_hexagon = two.makePolygon(0, 0, r * 0.9, sides);
+        inner_hexagon.fill = get_hsla_color(0, 6, 20, 1.00);
+        hexagon.id = `hexagon_id=${i}_${j}`;
+        inner_hexagon.rotation = Math.PI / 6;
+        inner_hexagon.id = `inner_hexagon_id=${i}_${j}`
+        inner_hexagon.linewidth = 1;
+        two.update();
+        inner_hexagon._renderer.elem.classList.add("untouchable");
+        
+        // var value = 0;
+        // var value = Math.random() > 0.5 ? Math.ceil(max_value * Math.random()) : 0;
+        
+        // const ratio = Math.min(value / max_value, 1);
+        // const light = max_l - (ratio * (max_l - min_l));
+        const group = two.makeGroup();
+        group.add(hexagon, inner_hexagon);
+        for (const cell of cells) {
+            const value = cell[3];
+            if (cell[0] === i && cell[1] === j) {
+                if (cell[4] === "big") {
+                    inner_hexagon.radius = r + padding / 2;
+                }
+                if (value !== 0) {
+                    const ratio = Math.min(value / max_value, 1);
+                    const light = max_l - (ratio * (max_l - min_l));
+                    inner_hexagon.fill = get_hsla_color(cell[2], 30, light);
+                    
+                    const txt = two.makeText(`${value}`, 0, 0);
+                    txt.stroke = 'black';
+                    txt.linewidth = .5;
+                    txt.fill = value !== 0 ? 'white' : 'transparent';
+                    txt.size = text_size;
+                    txt.weight = 800;
+                    txt.family = 'sans-serif';
+                    two.update();
+                    txt._renderer.elem.classList.add("untouchable");
+                    group.add(txt);
+                    break;
                 }
             }
-            
-            group.translation.set(x, y);
-            field.add(group)
-            two.update();
-        // } else {
-        // }
+        }
+        group.translation.set(x, y);
+        field.add(group)
+        two.update();
+
+        field.translation.set(
+            two.width / 2 - field.getBoundingClientRect().width / 2,
+            two.height / 2 - field.getBoundingClientRect().height / 2
+        );
+        two.update();
     }
 }
 
@@ -114,8 +131,28 @@ function setupInteractions(instance) {
     var ctrl_pressed = false;
     const svg = instance.renderer.domElement;
 
+    function isUntouchable(element) {
+        if (!element || !element.classList) return false;
+        
+        if (element.classList.contains('untouchable')) {
+            return true;
+        }
+        
+        let parent = element.parentElement;
+        while (parent && parent !== svg) {
+            if (parent.classList && parent.classList.contains('untouchable')) {
+                return true;
+            }
+            parent = parent.parentElement;
+        }
+        return false;
+    }
+
     const getShape = (e) => {
-        if (e.target.tagName === 'path') {
+        if (e.target.tagName === 'path' || e.target.tagName === 'text') {
+            if (isUntouchable(e.target)) {
+                return null;
+            }
             return instance.scene.getById(e.target.id);
         }
         return null;
@@ -149,7 +186,7 @@ function setupInteractions(instance) {
     });
 
     function change_fill(shape) {
-        var shapes = ['rgba(171, 171, 171, 0.5)', 'rgba(171, 171, 171, 0.06)'];
+        var shapes = ['hsla(0, 0%, 67%, 0.50)', 'hsla(0, 0%, 67%, 0.06)'];
         shape.fill = shapes[1 - shapes.indexOf(shape.fill)]
     }
 

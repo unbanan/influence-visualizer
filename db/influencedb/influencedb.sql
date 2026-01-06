@@ -1,8 +1,9 @@
 CREATE SCHEMA IF NOT EXISTS influence;
 
 CREATE TABLE influence.users(
-    id: BIGINT,
-    name: TEXT,
+    id BIGINT PRIMARY KEY,
+    name TEXT NOT NULL,
+    registered_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE INDEX users_id_index ON influence.users (id);
