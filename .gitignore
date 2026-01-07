@@ -2,6 +2,8 @@
 !**/.vscode/extensions.json
 **/.idea
 **/.DS_Store
+**/proto/go
+**/proto/cpp
 *.suo
 *.ntvs*
 *.njsproj

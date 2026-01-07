@@ -1,64 +1,81 @@
 package service
 
 import (
+	"context"
 	"fmt"
 	"net/http"
-	"os"
+	"regexp"
+	"time"
 
 	"contest-influence/server/internal/config"
-	"contest-influence/server/internal/context"
 	"contest-influence/server/internal/handlers"
-
-	"gopkg.in/yaml.v3"
+	"contest-influence/server/internal/repos"
 )
 
-type Service struct {
-	Config     config.ServiceConfig
-	HttpServer http.Server
-	Context    *context.Context
+type Service interface {
+	Run() error
+	Shutdown() error
 }
 
-func New(config_path string) (s Service) {
-	content, err := os.ReadFile(config_path)
+type ServiceImpl struct {
+	config          config.ServiceConfig
+	influenceDBRepo repos.InfluenceDBRepo
+	server          *http.Server
+}
 
+func New(config config.ServiceConfig) (ServiceImpl, error) {
 	fmt.Println("Initialising service")
 
-	if err != nil {
-		fmt.Printf("Cannot read config file: %s", err.Error())
-		panic(err)
-	}
-
-	config := config.ServiceConfig{}
-	err = yaml.Unmarshal(content, &config)
+	influencedb, err := repos.NewInfluenceDBRepo(config.InfluenceDB)
 
 	if err != nil {
-		fmt.Printf("Cannot parse config file: %s", err.Error())
-		panic(err)
+		return ServiceImpl{}, err
 	}
 
-	s.Config = config
-	s.Context = context.NewContext(config)
-
-	mux := http.NewServeMux()
-	mux.Handle("/api/ping", handlers.NewPingHandler())
-	mux.Handle("/api/v1/register", handlers.NewRegisterHandler(s.Context))
-
-	s.HttpServer = http.Server{
-		Addr:    fmt.Sprintf(":%d", s.Config.Server.Port),
-		Handler: mux,
-	}
-
-	return
+	return ServiceImpl{
+		config:          config,
+		influenceDBRepo: influencedb,
+	}, nil
 }
 
-func (s *Service) Run() {
-	fmt.Printf("Server addr: %s\n", s.HttpServer.Addr)
-	fmt.Println("Running server")
-	go func() {
-		if err := s.HttpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			panic(err)
-		}
-	}()
+func (s *ServiceImpl) RunHTTPService() {
+	s.server = &http.Server{
+		Addr:    s.makeListenerAddress(),
+		Handler: s.makeRouter(),
+	}
 
-	select {}
+	fmt.Printf("Server addr: %s\n", s.server.Addr)
+	fmt.Println("Running server")
+
+	err := s.server.ListenAndServe()
+
+	if err != nil {
+		fmt.Printf("failed to server HTTP server %e", err)
+	}
+}
+
+func (s *ServiceImpl) Run() error {
+	go s.RunHTTPService()
+	return nil
+}
+
+func (s *ServiceImpl) Shutdown() error {
+	ctx, close := context.WithTimeout(context.Background(), 15*time.Second)
+	defer close()
+
+	return s.server.Shutdown(ctx)
+}
+
+func (s *ServiceImpl) makeListenerAddress() string {
+	return fmt.Sprintf(":%d", s.config.Server.Port)
+}
+
+func (s *ServiceImpl) makeRouter() http.Handler {
+	mux := http.NewServeMux()
+	mux.Handle("/api/ping", handlers.NewPingHandler())
+	mux.Handle("/api/v1/register", handlers.NewRegisterHandler(
+		regexp.MustCompile(s.config.Common.PlayerNameRegex),
+		s.influenceDBRepo,
+	))
+	return mux
 }

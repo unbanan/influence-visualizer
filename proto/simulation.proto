@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+option go_package = "contest-influence/proto/simulation;simulation";
+
 // position at map
 message Position {
     uint32 row = 1;

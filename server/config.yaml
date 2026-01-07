@@ -8,7 +8,9 @@ influencedb:
   password: PGPASS
   db_name: influencedb
   max_open_conns: 50
-  max_idle_conns: 5
+  max_idle_conns: 10
   conn_max_lifetime: 5m
 
+common:
+  player_name_regex: ^[A-Za-z][A-Za-z0-9]{1,20}$
     
