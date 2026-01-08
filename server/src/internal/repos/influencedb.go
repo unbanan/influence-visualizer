@@ -18,10 +18,14 @@ type InfluenceDBRepoImpl struct {
 }
 
 func NewInfluenceDBRepo(config config.PgConfig) (*InfluenceDBRepoImpl, error) {
-	db, err := sqlx.Open("postgres", config.DSN())
+	db, err := sqlx.Connect("postgres", config.DSN())
 	if err != nil {
 		return nil, fmt.Errorf("Failed to open database: %w", err)
 	}
+
+	db.SetMaxOpenConns(config.MaxOpenConns)
+	db.SetMaxIdleConns(config.MaxIdleConns)
+	db.SetConnMaxLifetime(config.ConnMaxLifetime)
 
 	return &InfluenceDBRepoImpl{
 		db: db,

@@ -7,6 +7,8 @@ import (
 
 	"contest-influence/server/internal/config"
 	"contest-influence/server/internal/service"
+
+	"github.com/joho/godotenv"
 )
 
 func main() {
@@ -15,20 +17,22 @@ func main() {
 
 	var err error
 
-	config, err := config.FromYaml("../config.yaml")
+	err = godotenv.Load()
+	if err != nil {
+		panic(err)
+	}
 
+	config, err := config.FromYaml("../config.yaml")
 	if err != nil {
 		panic(err)
 	}
 
 	service, err := service.New(config)
-
 	if err != nil {
 		panic(err)
 	}
 
 	err = service.Run()
-
 	if err != nil {
 		panic(err)
 	}
@@ -37,7 +41,6 @@ func main() {
 	cancel()
 
 	err = service.Shutdown()
-
 	if err != nil {
 		panic(err)
 	}

@@ -5,8 +5,9 @@ influencedb:
   host: localhost
   port: 5432
   user: root
-  password: PGPASS
+  password: INFLUENCE_DB_PASS
   db_name: influencedb
+  sslmode: verify-all
   max_open_conns: 50
   max_idle_conns: 10
   conn_max_lifetime: 5m
