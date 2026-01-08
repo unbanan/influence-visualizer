@@ -1,5 +1,9 @@
 ## Deps
 `two.js`
+`express`
+`concurrently`
+`nodemon`
+`ejs`
 
 ## Launch
 `npm run edv`

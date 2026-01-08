@@ -2,10 +2,6 @@ import Two from 'two.js';
 
 // import {Field, Cell, Player, TickView, Visualization} from './utils';
 
-// const data = window.ATTEMPT_DATA;
-// console.log(data["status"]);
-
-
 function calc_radius() {
     var le = 0, ri = Math.max(container.clientHeight, container.clientWidth);
     while (le + 1 < ri) {
@@ -65,67 +61,69 @@ const cells = [
 
 const field = two.makeGroup()
 
-const grid = []
+for (let i = 0; i < h_n; i++) {
+    const y = padding + r + i * r + i * padding / 2;
+    for (let j = 0; j < w_n; j++) {
+        const x = padding + R + j * 3 * R + 2 * padding * j + (i % 2) * padding + R * 1.5 * (i % 2);
 
+        const hexagon = two.makePolygon(0, 0, R, sides);
+        hexagon.fill = get_hsla_color(0, 0, 67, 0.06);
+        hexagon.linewidth = 0;
 
-function initGrid() {
-    for (let i = 0; i < h_n; i++) {
-        grid[i] = []
-        const y = padding + r + i * r + i * padding / 2;
-        for (let j = 0; j < w_n; j++) {
-            const x = padding + R + j * 3 * R + 2 * padding * j + (i % 2) * padding + R * 1.5 * (i % 2);
-            const group = two.makeGroup();
-            const hex = two.makePolygon(0, 0, R, sides);
-            hex.fill = 'hsla(0, 0%, 67%, 0.06)';
-            hex.linewidth = 0;
-            
-            const inner = two.makePolygon(0, 0, r * 0.9, sides);
-            inner.rotation = Math.PI / 6;
-            inner.fill = get_hsla_color(0, 6, 20, 1.00);
-            inner.linewidth = 1;
-
-            group.add(hex, inner);
-            group.translation.set(x, y);
-            field.add(group);
-
-            grid[i][j] = {group, hex, inner, text: null}
-        }
-    }
-
-    field.translation.set(
-        two.width / 2 - field.getBoundingClientRect().width / 2,
-        two.height / 2 - field.getBoundingClientRect().height / 2
-    );
-
-    two.update();
-    for (let i = 0; i < h_n; i++) {
-        for (let j = 0; j < w_n; j++) {
-            grid[i][j].inner._renderer.elem.classList.add("untouchable");
-        }
-    }
-}
-
-
-initGrid();
-
-
-function drawState() {
-    for (let i = 0; i < h_n; i++) {
-        for (let j = 0; j < w_n; j++) {
-            const cell = grid[i][j];
-            if (Math.random() > 0.5) {
-                cell.group.opacity = 1;
-                cell.inner.fill = get_hsla_color(Math.random() * 360, 30, 50);
-            } else {
-                cell.group.opacity = 0;
+        const inner_hexagon = two.makePolygon(0, 0, r * 0.9, sides);
+        inner_hexagon.fill = get_hsla_color(0, 6, 20, 1.00);
+        hexagon.id = `hexagon_id=${i}_${j}`;
+        inner_hexagon.rotation = Math.PI / 6;
+        inner_hexagon.id = `inner_hexagon_id=${i}_${j}`
+        inner_hexagon.linewidth = 1;
+        two.update();
+        inner_hexagon._renderer.elem.classList.add("untouchable");
+        
+        // var value = 0;
+        // var value = Math.random() > 0.5 ? Math.ceil(max_value * Math.random()) : 0;
+        
+        // const ratio = Math.min(value / max_value, 1);
+        // const light = max_l - (ratio * (max_l - min_l));
+        const group = two.makeGroup();
+        group.add(hexagon, inner_hexagon);
+        for (const cell of cells) {
+            const value = cell[3];
+            if (cell[0] === i && cell[1] === j) {
+                if (cell[4] === "big") {
+                    inner_hexagon.radius = r + padding / 2;
+                }
+                if (value !== 0) {
+                    const ratio = Math.min(value / max_value, 1);
+                    const light = max_l - (ratio * (max_l - min_l));
+                    inner_hexagon.fill = get_hsla_color(cell[2], 30, light);
+                    
+                    const txt = two.makeText(`${value}`, 0, 0);
+                    txt.stroke = 'black';
+                    txt.linewidth = .5;
+                    txt.fill = value !== 0 ? 'white' : 'transparent';
+                    txt.size = text_size;
+                    txt.weight = 800;
+                    txt.family = 'sans-serif';
+                    two.update();
+                    txt._renderer.elem.classList.add("untouchable");
+                    group.add(txt);
+                    break;
+                }
             }
         }
+        group.translation.set(x, y);
+        field.add(group)
+        two.update();
+
+        field.translation.set(
+            two.width / 2 - field.getBoundingClientRect().width / 2,
+            two.height / 2 - field.getBoundingClientRect().height / 2
+        );
+        two.update();
     }
 }
 
 setupInteractions(two);
-// const FPS = 10;
-// setInterval(drawState, 1000 / FPS);
 
 function setupInteractions(instance) {
 
@@ -188,11 +186,8 @@ function setupInteractions(instance) {
     });
 
     function change_fill(shape) {
-        if (shape.fill !== 'hsla(0, 0%, 67%, 0.50)') {
-            shape.fill = 'hsla(0, 0%, 67%, 0.50)';
-        } else {
-            shape.fill = 'hsla(0, 0%, 67%, 0.06)'
-        }
+        var shapes = ['hsla(0, 0%, 67%, 0.50)', 'hsla(0, 0%, 67%, 0.06)'];
+        shape.fill = shapes[1 - shapes.indexOf(shape.fill)]
     }
 
     svg.addEventListener('mouseover', (e) => {
