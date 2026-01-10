@@ -9,23 +9,35 @@ CREATE TABLE influence.users(
 CREATE INDEX users_id_index ON influence.users (id);
 
 CREATE TABLE influence.strategies(
+    id UUID DEFAULT gen_random_uuid() UNIQUE,
     uid BIGINT,
-    sid UUID DEFAULT gen_random_uuid() UNIQUE,
     code TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     rate NUMBER DEFAULT NULL
 );
 
 CREATE INDEX strategies_uid_created_at_index ON influence.strategies (uid, created_at);
-CREATE INDEX strategies_sid_index ON influence.strategies (sid);
+CREATE INDEX strategies_id_index ON influence.strategies (id);
 
-CREATE TABLE influence.replays(
-    id UUID UNIQUE DEFAULT gen_random_uuid(),
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    data JSONB
+CREATE TYPE influence.simulation_state AS ENUM (
+    'Queued',
+    'Compiling',
+    'Running',
+    'Success',
+    'Failed'
 );
 
-CREATE INDEX replays_id_index ON influence.replays (id);
+CREATE TABLE influence.simulations(
+    id UUID UNIQUE DEFAULT gen_random_uuid(),
+    data JSONB
+    queued_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    started_at TIMESTAMP WITH TIME ZONE,
+    finished_at TIMESTAMP WITH TIME ZONE,
+    state influence.simulation_state
+);
+
+CREATE INDEX simulations_id_index ON influence.replays (id);
+CREATE INDEX simulations_created_at_index ON influence.replays (created_at);
 
 CREATE TABLE influence.maps(
     id UUID UNIQUE DEFAULT gen_random_uuid(),
