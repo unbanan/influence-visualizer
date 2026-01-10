@@ -6,7 +6,6 @@ GRPC_CPP_PLUGIN := $(shell which grpc_cpp_plugin)
 # Add GOPATH bin to PATH for protoc plugins
 export PATH := $(shell go env GOPATH)/bin:$(PATH)
 
-# Declare phony targets
 .PHONY: install go cpp all
 
 install:

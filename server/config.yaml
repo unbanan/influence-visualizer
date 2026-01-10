@@ -13,5 +13,5 @@ influencedb:
   conn_max_lifetime: 5m
 
 common:
-  player_name_regex: ^[A-Za-z][A-Za-z0-9]{1,20}$
+  player_name_regex: ^[A-Za-z][A-Za-z0-9_]{1,20}$
     

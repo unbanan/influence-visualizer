@@ -11,7 +11,7 @@ message Position {
 // single cell of a map
 message Cell {
     Position pos = 1;
-    optional uint32 value = 2;
+    uint32 value = 2;
 }
 
 // array of cells
@@ -21,7 +21,6 @@ message Cells {
 
 // map, consisting of cells
 message Map {
-    string name = 1;
     int32 nrows = 2;
     int32 ncols = 3;
 
@@ -39,15 +38,30 @@ message SimulationSate {
     map<int64, Cells> influence = 4;
 }
 
+// attack turn
+message Attack {
+    Position from = 1;
+    Position to = 2;
+}
+
+// result of attack
+message AttackResult {
+    Cell from = 1;
+    Cell to = 2;
+    bool win = 3;
+}
+
 // attack simulation phase
 message AttackSimulationPhase {
-    // position of attacking cell and values is a number of an attacked neighbour
-    Cells moves = 1;
+    // position of attacking and attacked cells
+    repeated AttackResult results = 2;
 }
+
+// defense turn is cell
+// defense result is cell
 
 // defense simulation phase
 message DefenseSimulationPhase {
-    bool autodefense = 1;
     // position of defending cell and values is a points number, skipped if autodefense is true
     Cells moves = 2;
 }
@@ -71,8 +85,6 @@ message Round {
 
 // simulation
 message Simulation {
-    Map map = 1;
-    repeated int64 player_ids = 2;
     // sequential rounds of all players in order of player_ids
     repeated Round rounds = 3;
     // statistics of all players after each round and at the begining of the simulation.
