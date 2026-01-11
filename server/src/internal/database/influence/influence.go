@@ -8,6 +8,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
+	_ "github.com/lib/pq"
 	"github.com/samber/lo"
 	"google.golang.org/protobuf/proto"
 )

@@ -5,6 +5,7 @@
 **/proto/go
 **/proto/cpp
 **/.env
+**/bin/
 *.suo
 *.ntvs*
 *.njsproj

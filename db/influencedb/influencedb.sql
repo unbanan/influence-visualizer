@@ -11,7 +11,7 @@ CREATE INDEX users_id_index ON influence.users (id);
 CREATE TABLE influence.strategies(
     id UUID DEFAULT gen_random_uuid() UNIQUE,
     uid BIGINT,
-    code TEXT,
+    code BYTEA,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     rate NUMBER DEFAULT NULL
 );
@@ -51,7 +51,7 @@ CREATE INDEX simulations_created_at_index ON influence.replays (created_at);
 
 CREATE TABLE influence.maps(
     id UUID UNIQUE DEFAULT gen_random_uuid(),
-    data JSONB,
+    data BYTEA,
     name TEXT NOT NULL,
     meta TEXT
 )

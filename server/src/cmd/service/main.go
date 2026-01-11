@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"os"
 	"os/signal"
 	"syscall"
 
@@ -22,7 +23,11 @@ func main() {
 		panic(err)
 	}
 
-	config, err := config.FromYaml("../config.yaml")
+	if len(os.Args) < 2 {
+		panic("config path is required")
+	}
+
+	config, err := config.FromYaml(os.Args[1])
 	if err != nil {
 		panic(err)
 	}
