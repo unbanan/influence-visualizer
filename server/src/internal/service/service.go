@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"contest-influence/server/internal/config"
+	"contest-influence/server/internal/database/influence"
 	"contest-influence/server/internal/handlers"
-	"contest-influence/server/internal/repos"
 )
 
 type Service interface {
@@ -19,14 +19,14 @@ type Service interface {
 
 type ServiceImpl struct {
 	config          config.ServiceConfig
-	influenceDBRepo repos.InfluenceDBRepo
+	influenceDBRepo influence.InfluenceDBRepo
 	server          *http.Server
 }
 
 func New(config config.ServiceConfig) (ServiceImpl, error) {
 	fmt.Println("Initialising service")
 
-	influencedb, err := repos.NewInfluenceDBRepo(config.InfluenceDB)
+	influencedb, err := influence.NewInfluenceDBRepo(config.InfluenceDB)
 
 	if err != nil {
 		return ServiceImpl{}, err
@@ -72,10 +72,23 @@ func (s *ServiceImpl) makeListenerAddress() string {
 
 func (s *ServiceImpl) makeRouter() http.Handler {
 	mux := http.NewServeMux()
-	mux.Handle("/api/ping", handlers.NewPingHandler())
-	mux.Handle("/api/v1/register", handlers.NewRegisterHandler(
-		regexp.MustCompile(s.config.Common.PlayerNameRegex),
-		s.influenceDBRepo,
-	))
+	mux.Handle(
+		"GET /api/ping",
+		handlers.NewPingHandler(),
+	)
+	mux.Handle(
+		"POST /api/v1/register",
+		handlers.NewRegisterHandler(
+			regexp.MustCompile(s.config.Common.PlayerNameRegex),
+			s.influenceDBRepo,
+		),
+	)
+	mux.Handle(
+		"GET /api/v1/simulation",
+		handlers.NewGetSimulationHandler(
+			s.influenceDBRepo,
+		),
+	)
+
 	return mux
 }

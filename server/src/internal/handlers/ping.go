@@ -11,9 +11,6 @@ func (h *pingHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("pong\n"))
 }
 
-func NewPingHandler() *BaseHandler {
-	return &BaseHandler{
-		Handler: &pingHandler{},
-		Method:  http.MethodGet,
-	}
+func NewPingHandler() http.Handler {
+	return WrapHandler(&pingHandler{})
 }

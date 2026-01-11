@@ -74,7 +74,7 @@ message PlayerStatistics {
 
 // statistics of all players for simulation round
 message Statistics {
-  map<int64, PlayerStatistics> players = 1;
+  repeated PlayerStatistics players = 1;
 }
 
 // round of simulation

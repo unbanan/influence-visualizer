@@ -1,6 +1,7 @@
 package unit
 
 import (
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -27,43 +28,6 @@ func ExpectedServeHTTPCalledNTimes(t *testing.T, expected int64, handler *Handle
 	assert.Equalf(t, expected, handler.ServeHTTPCalledCount, "Wrong number of calling ServeHTTP")
 }
 
-func TestBaseHandler_Method(t *testing.T) {
-	handlerMock := HandlerMock{
-		PanicStruct: nil,
-	}
-
-	handler := handlers.BaseHandler{
-		Handler: &handlerMock,
-		Method:  http.MethodPost,
-	}
-
-	requests := []*http.Request{
-		httptest.NewRequest(http.MethodPost, "/api/v1/path?param=val", nil),
-		httptest.NewRequest(http.MethodGet, "/api/v1/path?param=val", nil),
-	}
-
-	for _, r := range requests {
-		w := httptest.NewRecorder()
-		handler.ServeHTTP(w, r)
-
-		ExpectedServeHTTPCalledNTimes(t, 1, &handlerMock)
-
-		if handler.Method == r.Method {
-			ExpectStatusCodesEqual(t, http.StatusOK, w.Result().StatusCode)
-		} else {
-			ExpectStatusCodesEqual(t, http.StatusMethodNotAllowed, w.Result().StatusCode)
-		}
-	}
-}
-
-type TestingError struct {
-	Message string
-}
-
-func (e TestingError) Error() string {
-	return e.Message
-}
-
 func TestBaseHandler_Panic(t *testing.T) {
 	handlerMocks := []HandlerMock{
 		{
@@ -76,9 +40,7 @@ func TestBaseHandler_Panic(t *testing.T) {
 			},
 		},
 		{
-			PanicStruct: TestingError{
-				Message: "bad request",
-			},
+			PanicStruct: errors.New("bad request"),
 		},
 	}
 
@@ -86,10 +48,7 @@ func TestBaseHandler_Panic(t *testing.T) {
 		w := httptest.NewRecorder()
 		r := httptest.NewRequest(http.MethodGet, "/api/v1/path?param=val", nil)
 
-		handler := handlers.BaseHandler{
-			Handler: &handlerMock,
-			Method:  http.MethodGet,
-		}
+		handler := handlers.WrapHandler(&handlerMock)
 
 		handler.ServeHTTP(w, r)
 

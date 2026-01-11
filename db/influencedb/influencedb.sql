@@ -30,7 +30,7 @@ CREATE TYPE influence.simulation_state AS ENUM (
 CREATE TABLE influence.users_simulations(
     uid BIGINT NOT NULL REFERENCES influence.users(id),
     sid UUID NOT NULL REFERENCES influence.simulations(id),
-    number INT NOT NULL
+    order INT NOT NULL
 )
 
 CREATE INDEX users_simulations_uid_index ON influence.users_simulations (uid);

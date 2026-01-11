@@ -4,20 +4,20 @@ import (
 	"net/http"
 	"regexp"
 
+	"contest-influence/server/internal/database/influence"
 	"contest-influence/server/internal/handlers/params"
-	"contest-influence/server/internal/repos"
 )
 
-type IRegisterHandlerImpl interface {
+type RegisterHandlerImpl interface {
 	Register(id int64, name string)
 }
 
-type RegisterHandler struct {
-	Impl  IRegisterHandlerImpl
+type registerHandler struct {
+	Impl  RegisterHandlerImpl
 	Regex *regexp.Regexp
 }
 
-func (h *RegisterHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (h *registerHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	id := params.GetInt(r, "id")
 	name := params.GetString(r, "name")
 
@@ -33,26 +33,29 @@ func (h *RegisterHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Successfuly registered"))
 }
 
-func NewRegisterHandler(regex *regexp.Regexp, influencedb repos.InfluenceDBRepo) *BaseHandler {
-	return &BaseHandler{
-		Handler: &RegisterHandler{
-			Impl: &RegisterHandlerImpl{
-				InfluenceDBRepo: influencedb,
-			},
-			Regex: regex,
-		},
-		Method: http.MethodPost,
-	}
+type registerHandlerImpl struct {
+	InfluenceDBRepo influence.InfluenceDBRepo
 }
 
-type RegisterHandlerImpl struct {
-	InfluenceDBRepo repos.InfluenceDBRepo
-}
-
-func (h *RegisterHandlerImpl) Register(id int64, name string) {
+func (h *registerHandlerImpl) Register(id int64, name string) {
 	err := h.InfluenceDBRepo.Register(id, name)
 
 	if err != nil {
-		panic(err.Error())
+		panic(err)
 	}
+}
+
+func NewRegisterHandlerImpl(influencedb influence.InfluenceDBRepo) RegisterHandlerImpl {
+	return &registerHandlerImpl{
+		InfluenceDBRepo: influencedb,
+	}
+}
+
+func NewRegisterHandler(regex *regexp.Regexp, influencedb influence.InfluenceDBRepo) http.Handler {
+	return WrapHandler(
+		&registerHandler{
+			Impl:  NewRegisterHandlerImpl(influencedb),
+			Regex: regex,
+		},
+	)
 }

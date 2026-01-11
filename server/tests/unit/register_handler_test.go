@@ -3,39 +3,14 @@ package unit
 import (
 	"net/http"
 	"net/http/httptest"
-	"regexp"
 	"testing"
-
-	"contest-influence/server/internal/handlers"
 
 	"github.com/stretchr/testify/assert"
 )
 
-type RegisterImplMock struct {
-	RegisterCalledCount int64
-	LastID              int64
-	LastName            string
-	ShouldPanic         bool
-	PanicMessage        string
-}
-
-func (m *RegisterImplMock) Register(id int64, name string) {
-	m.RegisterCalledCount++
-	m.LastID = id
-	m.LastName = name
-	if m.ShouldPanic {
-		panic(m.PanicMessage)
-	}
-}
-
 func TestRegisterHandler_ValidRequest(t *testing.T) {
-	mock := &RegisterImplMock{}
-	regex := regexp.MustCompile(`^[a-zA-Z0-9_]{3,20}$`)
-
-	handler := &handlers.RegisterHandler{
-		Impl:  mock,
-		Regex: regex,
-	}
+	mock := &InfluenceDBRepoMock{}
+	handler := NewTestRegisterHandler(mock)
 
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodPost, "/api/v1/register?id=123&name=testuser", nil)
@@ -50,14 +25,6 @@ func TestRegisterHandler_ValidRequest(t *testing.T) {
 }
 
 func TestRegisterHandler_InvalidName(t *testing.T) {
-	mock := &RegisterImplMock{}
-	regex := regexp.MustCompile(`^[a-zA-Z0-9_]{3,20}$`)
-
-	handler := &handlers.RegisterHandler{
-		Impl:  mock,
-		Regex: regex,
-	}
-
 	testCases := []struct {
 		name     string
 		queryStr string
@@ -70,7 +37,9 @@ func TestRegisterHandler_InvalidName(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			mock.RegisterCalledCount = 0
+			mock := &InfluenceDBRepoMock{}
+			handler := NewTestRegisterHandler(mock)
+
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(http.MethodPost, "/api/v1/register"+tc.queryStr, nil)
 
@@ -83,23 +52,41 @@ func TestRegisterHandler_InvalidName(t *testing.T) {
 	}
 }
 
-func TestRegisterHandler_ImplPanic(t *testing.T) {
-	mock := &RegisterImplMock{
-		ShouldPanic:  true,
-		PanicMessage: "database error",
+func TestRegisterHandler_MissingParams(t *testing.T) {
+	testCases := []struct {
+		name     string
+		queryStr string
+	}{
+		{"missing id", "?name=testuser"},
+		{"missing name", "?id=123"},
 	}
-	regex := regexp.MustCompile(`^[a-zA-Z0-9_]{3,20}$`)
 
-	handler := &handlers.RegisterHandler{
-		Impl:  mock,
-		Regex: regex,
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			mock := &InfluenceDBRepoMock{}
+			handler := NewTestRegisterHandler(mock)
+
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodPost, "/api/v1/register"+tc.queryStr, nil)
+
+			handler.ServeHTTP(w, r)
+
+			assert.Equal(t, int64(0), mock.RegisterCalledCount)
+			ExpectStatusCodesEqual(t, http.StatusBadRequest, w.Result().StatusCode)
+		})
 	}
+}
+
+func TestRegisterHandler_InvalidID(t *testing.T) {
+	mock := &InfluenceDBRepoMock{}
+	handler := NewTestRegisterHandler(mock)
 
 	w := httptest.NewRecorder()
-	r := httptest.NewRequest(http.MethodPost, "/api/v1/register?id=123&name=testuser", nil)
+	r := httptest.NewRequest(http.MethodPost, "/api/v1/register?id=invalid&name=testuser", nil)
 
-	assert.Panics(t, func() {
-		handler.ServeHTTP(w, r)
-	})
-	assert.Equal(t, int64(1), mock.RegisterCalledCount)
+	handler.ServeHTTP(w, r)
+
+	assert.Equal(t, int64(0), mock.RegisterCalledCount)
+	ExpectStatusCodesEqual(t, http.StatusBadRequest, w.Result().StatusCode)
+	assert.Contains(t, w.Body.String(), "field id has wrong format")
 }

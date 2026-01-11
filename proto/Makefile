@@ -21,9 +21,10 @@ go:
 	protoc -I=${PROTO_DIR} \
 	--go_out=${GEN_GO_DIR} \
 	--go-grpc_out=${GEN_GO_DIR} \
-	--go_opt=paths=source_relative \
-	--go-grpc_opt=paths=source_relative \
+	--go_opt=module=contest-influence/proto \
+	--go-grpc_opt=paths=import \
 	*.proto
+	cd ${GEN_GO_DIR} && go mod init contest-influence/proto && go mod tidy
 
 cpp:
 	rm -rf $(GEN_CPP_DIR)

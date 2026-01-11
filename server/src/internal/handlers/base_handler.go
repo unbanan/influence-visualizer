@@ -7,17 +7,15 @@ import (
 	"contest-influence/server/internal/handlers/handler_types"
 )
 
-type BaseHandler struct {
+type baseHandler struct {
 	Handler http.Handler
-	Method  string
 }
 
-func (h *BaseHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if r.Method != h.Method {
-		w.WriteHeader(http.StatusMethodNotAllowed)
-		return
-	}
+func WrapHandler(handler http.Handler) *baseHandler {
+	return &baseHandler{Handler: handler}
+}
 
+func (h *baseHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		if r := recover(); r != nil {
 			switch err := r.(type) {

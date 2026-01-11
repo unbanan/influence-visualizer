@@ -6,6 +6,8 @@ import (
 	"strconv"
 
 	"contest-influence/server/internal/handlers/handler_types"
+
+	"github.com/google/uuid"
 )
 
 func getField(r *http.Request, field string) string {
@@ -34,4 +36,8 @@ func GetInt(r *http.Request, field string) int64 {
 	}
 
 	return val
+}
+
+func GetUUID(r *http.Request, field string) uuid.UUID {
+	return uuid.MustParse(GetString(r, field))
 }
