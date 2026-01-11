@@ -8,15 +8,15 @@ import (
 )
 
 type PgConfig struct {
-	Host            string        `yaml:"host"`
-	Port            int           `yaml:"port"`
-	User            string        `yaml:"user"`
-	Password        string        `yaml:"password"`
-	DbName          string        `yaml:"db_name"`
-	SSLMode         string        `yaml:"sslmode"`
-	MaxOpenConns    int           `yaml:"max_open_conns"`
-	MaxIdleConns    int           `yaml:"max_idle_conns"`
-	ConnMaxLifetime time.Duration `yaml:"conn_max_lifetime"`
+	Host            string        `yaml:"host" default:"localhost"`
+	Port            int           `yaml:"port" default:"5432"`
+	User            string        `yaml:"user" default:"root"`
+	Password        string        `yaml:"password" default:"INFLUENCEDB_PASS"`
+	DbName          string        `yaml:"db_name" default:"influencedb"`
+	SSLMode         string        `yaml:"sslmode" default:"disable"`
+	MaxOpenConns    int           `yaml:"max_open_conns" default:"20"`
+	MaxIdleConns    int           `yaml:"max_idle_conns" default:"5"`
+	ConnMaxLifetime time.Duration `yaml:"conn_max_lifetime" default:"5m"`
 }
 
 func (c PgConfig) DSN() string {

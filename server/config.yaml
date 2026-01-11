@@ -5,7 +5,7 @@ influencedb:
   host: localhost
   port: 5432
   user: root
-  password: INFLUENCE_DB_PASS
+  password: INFLUENCEDB_PASS
   db_name: influencedb
   sslmode: disable
   max_open_conns: 50

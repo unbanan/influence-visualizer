@@ -60,6 +60,7 @@ func (s *ServiceImpl) Run() error {
 }
 
 func (s *ServiceImpl) Shutdown() error {
+	fmt.Printf("Shutting down")
 	ctx, close := context.WithTimeout(context.Background(), 15*time.Second)
 	defer close()
 

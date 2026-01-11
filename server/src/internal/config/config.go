@@ -9,13 +9,13 @@ import (
 
 type ServiceConfig struct {
 	Server struct {
-		Port uint16 `yaml:"port"`
+		Port uint16 `yaml:"port" default:"1337"`
 	} `yaml:"server"`
 
 	InfluenceDB PgConfig `yaml:"influencedb"`
 
 	Common struct {
-		PlayerNameRegex string `yaml:"player_name_regex"`
+		PlayerNameRegex string `yaml:"player_name_regex" default:"^[A-Za-z][A-Za-z0-9_]{1,20}$"`
 	} `yaml:"common"`
 }
 
